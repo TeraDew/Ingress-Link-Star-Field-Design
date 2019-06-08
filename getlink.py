@@ -3,7 +3,8 @@ import json
 import logging
 import os
 import math
-import numpy as np
+from Vector import *
+#import numpy as np
 
 
 class Portal(object):
@@ -18,7 +19,7 @@ class Portal(object):
         math.cos((self.lng/180.0*math.pi))
         self.z = math.sin(self.lng/180.0*math.pi)
 
-        self.array = np.array([self.x, self.y, self.z]).reshape((1, -1))
+        self.array = Vector([self.x, self.y, self.z])
 
     def portal2dict(self):
         return {
@@ -31,13 +32,13 @@ class Portal(object):
 
 
 def is_left(a, b, c):
-    normal_vector = np.cross(a.array, b.array)
-    return np.dot(c.array, normal_vector.reshape(-1, 1)) > 0
+    normal_vector = a.array @ b.array
+    return c.array * normal_vector > 0
 
 
 def is_inner(triangle, d):
     a, b, c = triangle.a, triangle.b, triangle.c
-    if (((a.array == d.array).all()) or ((b.array == d.array).all())or((c.array == d.array).all())):
+    if a.array == d.array or b.array == d.array or c.array == d.array:
         return False
     if not is_left(a, b, c):
         b, c = c, b
@@ -69,7 +70,7 @@ def get_convex_hull(portal_list):
 
     distance_list = []
     for portal in inner_list:
-        distance_list.append(np.linalg.norm(apex.array-portal.array))
+        distance_list.append(abs(apex.array-portal.array))
 
     seed_index = distance_list.index(max(distance_list))
     convex_list = []
@@ -81,7 +82,7 @@ def get_convex_hull(portal_list):
             break_flag = 0
             inner_flag = False
             for b in inner_list:
-                if((a.array == b.array).all()or(convex_list[-1].array == b.array).all()):
+                if(a.array == b.array or (convex_list[-1].array == b.array)):
                     continue
                 if is_left(convex_list[-1], a, b):
                     continue
@@ -95,7 +96,7 @@ def get_convex_hull(portal_list):
                 convex_list.append(a)
                 inner_list.remove(a)
 
-                if (convex_list[0].array == convex_list[-1].array).all():
+                if (convex_list[0].array == convex_list[-1].array):
                     convex_list.pop()
                     return convex_list, inner_list
                 break_flag = 1
