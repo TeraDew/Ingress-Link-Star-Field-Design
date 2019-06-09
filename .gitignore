@@ -1,3 +1,5 @@
 *.txt
 .vscode/*
 __pycache__/*
+vt.py
+Vector.py
