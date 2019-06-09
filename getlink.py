@@ -3,8 +3,45 @@ import json
 import logging
 import os
 import math
-from Vector import *
+#from Vector import *
 #import numpy as np
+
+
+class Vector:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __iter__(self):
+        return iter([self.x, self.y, self.z])
+
+    def __str__(self):
+        return str(tuple(self))
+
+    def __eq__(self, other):
+        if isinstance(other, Vector):
+            return (all(a == b for a, b in zip(self, other)))
+        else:
+            return NotImplemented
+
+    def __sub__(self, other):
+        pairs = zip(self, other)
+        tem = iter([a-b for a, b in pairs])
+        return Vector(next(tem), next(tem), next(tem))
+
+    def __mul__(self, other):
+        try:
+            return sum(a*b for a, b in zip(self, other))
+        except TypeError:
+            return NotImplemented
+
+    def __matmul__(self, other):
+        if isinstance(other, Vector):
+
+            return Vector(self.y*other.z-other.y*self.z, other.x*self.z-self.x*other.z, self.x*other.y-other.x*self.y)
+        else:
+            return NotImplemented
 
 
 class Portal(object):
@@ -19,7 +56,7 @@ class Portal(object):
         math.cos((self.lng/180.0*math.pi))
         self.z = math.sin(self.lng/180.0*math.pi)
 
-        self.array = Vector([self.x, self.y, self.z])
+        self.array = Vector(self.x, self.y, self.z)
 
     def portal2dict(self):
         return {
@@ -69,10 +106,11 @@ def get_convex_hull(portal_list):
     inner_list = list(portal_list)
 
     distance_list = []
-    for portal in inner_list:
-        distance_list.append(abs(apex.array-portal.array))
+    x_list = [v.x for v in inner_list]
+#    for portal in inner_list:
+ #       distance_list.append(abs(apex.array-portal.array))
 
-    seed_index = distance_list.index(max(distance_list))
+    seed_index = x_list.index(max(x_list))
     convex_list = []
     # print(inner_list[seed_index].name)
     convex_list.append(inner_list[seed_index])
@@ -151,6 +189,14 @@ def get_triangles(triangle, inner_list, polyline):
     if len(inner_list) == 1:
         polyline += draw_tri_link(triangle, inner_list[0])
         return polyline
+
+    # seed_list, temp = get_convex_hull(inner_list)
+
+    # privilege_list = [x for x in inner_list if x in seed_list]
+    # step = seed_list.index(privilege_list[0])
+    # for i in range(step):
+    #     seed_list.append(seed_list[0])
+    #     seed_list.pop(0)
 
     for p in inner_list:
         left_list = []
