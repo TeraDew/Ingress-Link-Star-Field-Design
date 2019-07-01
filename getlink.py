@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 from sys import argv
-#import logging
 import os
 import math
-#from Vector import *
-#import numpy as np
+import argparse
 
 
 class Vector:
@@ -191,14 +189,6 @@ def get_triangles(triangle, inner_list, polyline):
         polyline += draw_tri_link(triangle, inner_list[0])
         return polyline
 
-    # seed_list, temp = get_convex_hull(inner_list)
-
-    # privilege_list = [x for x in inner_list if x in seed_list]
-    # step = seed_list.index(privilege_list[0])
-    # for i in range(step):
-    #     seed_list.append(seed_list[0])
-    #     seed_list.pop(0)
-
     for p in inner_list:
         left_list = []
         right_list = []
@@ -287,41 +277,20 @@ def get_divided(portal_list, convex_list):
 
         return best_divide_list, best_inner_list
 
-        # polyline = []
 
-        # for i in range(len(best_divide_list)):
-        #     if is_inner(best_divide_list[i], apex):
-        #         pass
-        #     else:
-        #         polyline += get_triangles(best_divide_list[i],
-        #                                   best_inner_list[i], polyline)
+def get_portals(str):
 
-        # for t in best_divide_list:
-        #     polyline += draw_triangle(t)
-        # return polyline
+    p_dict = json.loads(str)
 
-        # json_str = json.dumps(polyline)
-        # with open('result.txt', 'w') as f:
-        #    f.write(json_str)
-        # return polyline, best_divide_list
+    portal_list = []
+    for group in p_dict["portals"]:  # 输出带序号的portal名，选择顶点
+        for portal in p_dict["portals"][group]["bkmrk"]:
+            latlng = p_dict["portals"][group]["bkmrk"][portal]["latlng"]
+            temp_portal = Portal(p_dict["portals"][group]["bkmrk"][portal]["label"], float(
+                latlng.split(",")[0]), float(latlng.split(",")[1]))
+            portal_list.append(temp_portal)
 
-
-def get_portals(filename):
-    '''
-
-    '''
-    with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
-        p_dict = json.loads(f.read())
-
-        portal_list = []
-        for group in p_dict["portals"]:  # 输出带序号的portal名，选择顶点
-            for portal in p_dict["portals"][group]["bkmrk"]:
-                latlng = p_dict["portals"][group]["bkmrk"][portal]["latlng"]
-                temp_portal = Portal(p_dict["portals"][group]["bkmrk"][portal]["label"], float(
-                    latlng.split(",")[0]), float(latlng.split(",")[1]))
-                portal_list.append(temp_portal)
-
-    print('apex name: ' + portal_list[0].name)
+    #print('apex name: ' + portal_list[0].name)
 
     return portal_list
 
@@ -342,26 +311,9 @@ def test_get_triangles():
         f.write(json_str)
 
 
-def test_get_divided():
-    filename = ''
-    if len(argv) == 2:
-        procname,filename = argv
-    elif len(argv) == 1:
-        temp_no = 1
-        for filename in os.listdir('.'):
-            print(temp_no, filename)
-            temp_no += 1
+def test_get_divided(portal_str):
 
-        print("选择portal列表文件序号")
-
-        file_no = int(input())
-        filename = os.listdir('.')[file_no - 1]
-        print(filename)
-    else:
-        print('too many arguments! %d' % (len(argv)))
-        print(argv)
-
-    portal_list = get_portals(filename)
+    portal_list = get_portals(portal_str)
     convex, inner = get_convex_hull(portal_list)
 
     portal_n = len(portal_list)
@@ -370,8 +322,8 @@ def test_get_divided():
     link_n = 2*convex_n-3+3*inner_n
     field_n = 3*inner_n+convex_n-2
 
-    print('portal\t内点\t外点\tlink\tfield\tap\n%d\t%d\t%d\t%d\t%d\t%d' % (
-        portal_n, inner_n, convex_n, link_n, field_n, link_n*313+field_n*1250))
+    # print('portal\t内点\t外点\tlink\tfield\tap\n%d\t%d\t%d\t%d\t%d\t%d' % (
+    #     portal_n, inner_n, convex_n, link_n, field_n, link_n*313+field_n*1250))
 
     triangle_list, inner_portal_list = get_divided(portal_list, convex)
 
@@ -383,11 +335,38 @@ def test_get_divided():
         get_triangles(triangle, inner_list, polyline)
 
     json_str = json.dumps(polyline)
-    (result_filename, temp) = os.path.splitext(filename)
-    result_filename += '_result.txt'
-    with open(result_filename, 'w') as f:
-        f.write(json_str)
+    return json_str
+
+
+def add_quote(str):
+    if str[0] == '{' and str[-1] == '}':
+        add_quote(str[1:-1])
 
 
 if __name__ == "__main__":
-    test_get_divided()
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--file', help='input a text file and output a text file', type=str)
+    parser.add_argument(
+        '--string', help='string input and string output', type=str)
+    args = parser.parse_args()
+
+    if args.file:
+        print(args.file)
+        json_str = ''
+        with open(args.file, 'r', encoding='utf-8', errors='ignore') as f:
+            json_str = test_get_divided(f.read())
+        (result_filename, temp) = os.path.splitext(args.file)
+        result_filename += '_result.txt'
+        with open(result_filename, 'w') as f:
+            f.write(json_str)
+
+    if args.string:
+        try:
+            json_str = test_get_divided(str(args.string))
+            print(json_str)
+        except json.decoder.JSONDecodeError:
+            print(
+                'JSONDecodeError:\nyou have to add \\ before all \" in the input string')
