@@ -1,10 +1,20 @@
-## 使用简介
+## requisite
+
+python3
+
+## 用法
+
+使用本工具你需要知道如何从 IITC 中导出 portal 书签 (bookmark)，导入图形 (draw items)，以及做 ingress 多重最大ap时的连接顺序。不知道？点击 [IITC 教程](https://bjres.net/2018/02/02/iitc-%EF%BC%88ingress-intel-total-conversion%EF%BC%89%E6%95%99%E7%A8%8B/) 、[最大ap原理](https://zhuanlan.zhihu.com/p/19579305).
 
 1. 在IITC中把所有要用到的点存为书签，将多重顶点放到第一位，导出存为文本文件，并与程序放入同一文件夹。
 
-2. 运行程序，根据提示选择该文件，回车即可得到画图文件。或者：直接将portal文件拖到exe程序的图标上。
+2. 打开命令行界面并切换到程序目录，输入 ```python getlink <文件名>``` 可获得图形文件。
 
-3. 将画图文件导入IITC即可。
+3. 将图形文件中的内容导入IITC，最终效果如图。
+
+![result](result.png)
+
+其他用法请参考 ```python getlink -h```
 
 ### 进阶提示
 
@@ -27,3 +37,5 @@ portal在书签中的顺序会显著影响最终的图形，因为在下文“�
 
 当三角形内包含多重点时，优先从多重点分割，并以之为上顶点，其余两个点为下顶点。
 当多重点为三角形的上顶点时，在三角形内的点中寻找一点S使其与两个下顶点连成的三角形中没有其他的点，以点S分割三角形，一直分割下去直到三角形内没有点。
+
+### Inspired by [Konano/Ingress-Field-Design](https://github.com/Konano/Ingress-Field-Design)
