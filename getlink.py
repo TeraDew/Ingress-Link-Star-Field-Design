@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
-import logging
+from sys import argv
+#import logging
 import os
 import math
 #from Vector import *
@@ -342,17 +343,23 @@ def test_get_triangles():
 
 
 def test_get_divided():
+    filename = ''
+    if len(argv) == 2:
+        procname,filename = argv
+    elif len(argv) == 1:
+        temp_no = 1
+        for filename in os.listdir('.'):
+            print(temp_no, filename)
+            temp_no += 1
 
-    temp_no = 1
-    for filename in os.listdir('.'):
-        print(temp_no, filename)
-        temp_no += 1
+        print("选择portal列表文件序号")
 
-    print("选择portal列表文件序号")
-
-    file_no = int(input())
-    filename = os.listdir('.')[file_no - 1]
-    print(filename)
+        file_no = int(input())
+        filename = os.listdir('.')[file_no - 1]
+        print(filename)
+    else:
+        print('too many arguments! %d' % (len(argv)))
+        print(argv)
 
     portal_list = get_portals(filename)
     convex, inner = get_convex_hull(portal_list)
@@ -383,5 +390,4 @@ def test_get_divided():
 
 
 if __name__ == "__main__":
-
     test_get_divided()
